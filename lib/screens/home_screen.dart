@@ -2,19 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/watch_face.dart';
 import '../services/hwt_service.dart';
+import '../services/localization_service.dart';
 import '../services/storage_service.dart';
 import '../theme/luxury_theme.dart';
 import '../widgets/search_filter_bar.dart';
+import '../widgets/settings_sheet.dart';
 import '../widgets/stats_header.dart';
 import '../widgets/watch_card.dart';
 import '../widgets/watch_detail_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
+  final AppLocale appLocale;
   final VoidCallback onToggleTheme;
   final bool isDark;
 
   const HomeScreen({
     super.key,
+    required this.appLocale,
     required this.onToggleTheme,
     required this.isDark,
   });
@@ -28,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<WatchFace> _allWatches = [];
   List<WatchFace> _filteredWatches = [];
   bool _isLoading = true;
-  String _statusMessage = 'Huawei klasörü taranıyor...';
+  String _statusMessage = '';
   String _currentPath = StorageService.androidPrimaryHuaweiPath;
   SortOption _currentSort = SortOption.nameAsc;
   int _totalBytes = 0;
@@ -42,13 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _initAndLoad({String? customPath}) async {
     setState(() {
       _isLoading = true;
-      _statusMessage = 'İzinler kontrol ediliyor...';
+      _statusMessage = widget.appLocale.t('scanPermissions');
     });
 
     await StorageService.requestPermissions();
 
     setState(() {
-      _statusMessage = 'Huawei klasörü taranıyor...';
+      _statusMessage = widget.appLocale.t('scanSearching');
     });
 
     final files = await StorageService.scanHwtFiles(customDirectoryPath: customPath);
@@ -64,7 +68,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final file = files[i];
       if (mounted) {
         setState(() {
-          _statusMessage = 'Kadran ayrıştırılıyor (${i + 1}/${files.length})...';
+          _statusMessage = widget.appLocale.t('scanParsing', {
+            'current': '${i + 1}',
+            'total': '${files.length}',
+          });
         });
       }
       final parsed = await HwtService.parseHwtFile(file);
@@ -127,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
         SnackBar(
           backgroundColor: LuxuryColors.darkCard,
           content: Text(
-            '${imported.length} kadran Huawei klasörüne aktarıldı!',
+            widget.appLocale.t('importedSuccess', {'count': '${imported.length}'}),
             style: GoogleFonts.montserrat(color: LuxuryColors.goldLight),
           ),
         ),
@@ -148,84 +155,109 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => WatchDetailSheet(watch: watch, isDark: widget.isDark),
+      builder: (_) => WatchDetailSheet(
+        watch: watch,
+        appLocale: widget.appLocale,
+        isDark: widget.isDark,
+      ),
+    );
+  }
+
+  void _openSettings() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => SettingsSheet(
+        appLocale: widget.appLocale,
+        isDark: widget.isDark,
+        onToggleTheme: widget.onToggleTheme,
+        currentPath: _currentPath,
+        onPickFolder: _handlePickFolder,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
+    final appLocale = widget.appLocale;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            StatsHeader(
-              totalCount: _allWatches.length,
-              totalSize: HwtService.formatBytes(_totalBytes),
-              currentPath: _currentPath,
-              onRefresh: () => _initAndLoad(),
-              onImport: _handleImport,
-              onPickFolder: _handlePickFolder,
-              onToggleTheme: widget.onToggleTheme,
-              isDark: isDark,
-            ),
-            SearchFilterBar(
-              searchController: _searchController,
-              onSearchChanged: (_) => _applyFilterAndSort(),
-              currentSort: _currentSort,
-              onSortChanged: (sort) {
-                setState(() {
-                  _currentSort = sort;
-                  _applyFilterAndSort();
-                });
-              },
-              isDark: isDark,
-            ),
-            Expanded(
-              child: _isLoading
-                  ? _buildLoadingState(isDark)
-                  : (_filteredWatches.isEmpty
-                      ? _buildEmptyState(isDark)
-                      : RefreshIndicator(
-                          color: LuxuryColors.gold,
-                          backgroundColor: isDark ? LuxuryColors.darkSurface : Colors.white,
-                          onRefresh: () => _initAndLoad(),
-                          child: GridView.builder(
-                            padding: const EdgeInsets.fromLTRB(14, 6, 14, 24),
-                            itemCount: _filteredWatches.length,
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 0.78,
+    return Directionality(
+      textDirection: appLocale.textDirection,
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              StatsHeader(
+                totalCount: _allWatches.length,
+                totalSize: HwtService.formatBytes(_totalBytes),
+                currentPath: _currentPath,
+                onRefresh: () => _initAndLoad(),
+                onImport: _handleImport,
+                onPickFolder: _handlePickFolder,
+                onOpenSettings: _openSettings,
+                appLocale: appLocale,
+                isDark: isDark,
+              ),
+              SearchFilterBar(
+                searchController: _searchController,
+                onSearchChanged: (_) => _applyFilterAndSort(),
+                currentSort: _currentSort,
+                onSortChanged: (sort) {
+                  setState(() {
+                    _currentSort = sort;
+                    _applyFilterAndSort();
+                  });
+                },
+                appLocale: appLocale,
+                isDark: isDark,
+              ),
+              Expanded(
+                child: _isLoading
+                    ? _buildLoadingState(isDark)
+                    : (_filteredWatches.isEmpty
+                        ? _buildEmptyState(isDark)
+                        : RefreshIndicator(
+                            color: LuxuryColors.gold,
+                            backgroundColor: isDark ? LuxuryColors.darkSurface : Colors.white,
+                            onRefresh: () => _initAndLoad(),
+                            child: GridView.builder(
+                              padding: const EdgeInsets.fromLTRB(14, 6, 14, 24),
+                              itemCount: _filteredWatches.length,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 0.78,
+                              ),
+                              itemBuilder: (context, index) {
+                                final watch = _filteredWatches[index];
+                                return WatchCard(
+                                  watch: watch,
+                                  isDark: isDark,
+                                  onTap: () => _openDetails(watch),
+                                );
+                              },
                             ),
-                            itemBuilder: (context, index) {
-                              final watch = _filteredWatches[index];
-                              return WatchCard(
-                                watch: watch,
-                                isDark: isDark,
-                                onTap: () => _openDetails(watch),
-                              );
-                            },
-                          ),
-                        )),
-            ),
-          ],
+                          )),
+              ),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: LuxuryColors.gold,
-        foregroundColor: Colors.black,
-        elevation: 6,
-        onPressed: _handleImport,
-        icon: const Icon(Icons.add, size: 20),
-        label: Text(
-          'HWT Ekle',
-          style: GoogleFonts.montserrat(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.8,
+        floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: LuxuryColors.gold,
+          foregroundColor: Colors.black,
+          elevation: 6,
+          onPressed: _handleImport,
+          icon: const Icon(Icons.add, size: 20),
+          label: Text(
+            appLocale.t('addHwt'),
+            style: GoogleFonts.montserrat(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.8,
+            ),
           ),
         ),
       ),
@@ -247,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 18),
           Text(
-            _statusMessage,
+            _statusMessage.isNotEmpty ? _statusMessage : widget.appLocale.t('scanSearching'),
             style: GoogleFonts.montserrat(
               color: isDark ? Colors.white70 : Colors.black87,
               fontSize: 13,
@@ -260,6 +292,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildEmptyState(bool isDark) {
+    final appLocale = widget.appLocale;
+
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
@@ -281,7 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Huawei Klasöründe Kadran Bulunamadı',
+              appLocale.t('emptyTitle'),
               textAlign: TextAlign.center,
               style: GoogleFonts.cinzel(
                 color: isDark ? LuxuryColors.goldLight : LuxuryColors.goldDark,
@@ -291,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Cihazınızın Dahili Depolama alanında bulunan "Huawei" klasörüne (.hwt) dosyalarınızı kopyalayın veya aşağıdaki buton ile dosyalarınızı seçin.',
+              appLocale.t('emptyDesc'),
               textAlign: TextAlign.center,
               style: GoogleFonts.montserrat(
                 color: isDark ? Colors.white60 : Colors.black54,
@@ -332,7 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: _handleImport,
                   icon: const Icon(Icons.file_upload_outlined, size: 18),
                   label: Text(
-                    'Dosya Seç & Aktar',
+                    appLocale.t('pickAndImport'),
                     style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -347,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () => _initAndLoad(),
                   icon: const Icon(Icons.refresh, size: 18),
                   label: Text(
-                    'Tekrar Tara',
+                    appLocale.t('rescan'),
                     style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),

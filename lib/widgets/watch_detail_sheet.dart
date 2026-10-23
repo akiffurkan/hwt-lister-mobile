@@ -3,15 +3,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/watch_face.dart';
+import '../services/localization_service.dart';
 import '../theme/luxury_theme.dart';
 
 class WatchDetailSheet extends StatefulWidget {
   final WatchFace watch;
+  final AppLocale appLocale;
   final bool isDark;
 
   const WatchDetailSheet({
     super.key,
     required this.watch,
+    required this.appLocale,
     required this.isDark,
   });
 
@@ -27,7 +30,7 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
     SharePlus.instance.share(
       ShareParams(
         files: [XFile(widget.watch.filePath)],
-        text: '${widget.watch.displayName} - Huawei Watch Face',
+        text: widget.appLocale.t('shareWatchFaceText', {'name': widget.watch.displayName}),
       ),
     );
   }
@@ -35,6 +38,7 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
   @override
   Widget build(BuildContext context) {
     final watch = widget.watch;
+    final appLocale = widget.appLocale;
     final isDark = widget.isDark;
     final dateStr = DateFormat('dd.MM.yyyy HH:mm').format(watch.modifiedDate);
 
@@ -113,7 +117,7 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
                         },
                         icon: Icon(_showAod ? Icons.wb_sunny : Icons.nightlight_round, size: 14),
                         label: Text(
-                          _showAod ? 'Normal Kapak' : 'AOD Önizleme',
+                          _showAod ? appLocale.t('normalCover') : appLocale.t('aodPreview'),
                           style: GoogleFonts.montserrat(fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -136,7 +140,7 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
               if (watch.author.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
-                  'Tasarımcı: ${watch.author}',
+                  appLocale.t('designer', {'author': watch.author}),
                   textAlign: TextAlign.center,
                   style: GoogleFonts.montserrat(
                     color: isDark ? Colors.white70 : Colors.black87,
@@ -147,7 +151,7 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
               ],
               const SizedBox(height: 16),
 
-              // Paylaş ve Dışa Aktar Butonları
+              // Paylaş Butonu
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -161,7 +165,7 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
                     onPressed: _shareFile,
                     icon: const Icon(Icons.share_outlined, size: 18),
                     label: Text(
-                      'HWT Dosyasını Paylaş',
+                      appLocale.t('shareHwt'),
                       style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -170,12 +174,12 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
               const SizedBox(height: 20),
 
               // Özellik Kartları Grid
-              _buildSpecsGrid(watch, isDark, dateStr),
+              _buildSpecsGrid(watch, appLocale, isDark, dateStr),
               const SizedBox(height: 16),
 
               // Açıklama Metni (Varsa)
               if (watch.description.isNotEmpty) ...[
-                _buildSectionHeader('Açıklama', isDark),
+                _buildSectionHeader(appLocale.t('description'), isDark),
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
@@ -201,7 +205,7 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
 
               // XML Metadata Detayları
               if (watch.xmlMetadata.isNotEmpty) ...[
-                _buildSectionHeader('XML Konfigürasyon Verisi', isDark),
+                _buildSectionHeader(appLocale.t('xmlConfig'), isDark),
                 const SizedBox(height: 8),
                 Container(
                   decoration: BoxDecoration(
@@ -258,7 +262,7 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
               ],
 
               // Arşiv Dosya Listesi
-              _buildSectionHeader('Arşiv İçeriği (${watch.fileList.length} Dosya)', isDark),
+              _buildSectionHeader(appLocale.t('archiveContent', {'count': '${watch.fileList.length}'}), isDark),
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
@@ -305,7 +309,9 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
                           });
                         },
                         child: Text(
-                          _showAllFiles ? 'Daha Az Göster' : 'Tümünü Göster (${watch.fileList.length})',
+                          _showAllFiles
+                              ? appLocale.t('showLess')
+                              : appLocale.t('showMore', {'count': '${watch.fileList.length}'}),
                           style: GoogleFonts.montserrat(
                             color: LuxuryColors.gold,
                             fontSize: 12,
@@ -338,14 +344,14 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
     );
   }
 
-  Widget _buildSpecsGrid(WatchFace watch, bool isDark, String dateStr) {
+  Widget _buildSpecsGrid(WatchFace watch, AppLocale appLocale, bool isDark, String dateStr) {
     final items = [
-      {'label': 'Dosya Boyutu', 'value': watch.formattedSize, 'icon': Icons.data_usage},
-      {'label': 'Versiyon', 'value': watch.version.isNotEmpty ? watch.version : 'Belirtilmedi', 'icon': Icons.tag},
-      {'label': 'Hedef Cihaz', 'value': watch.device ?? 'Huawei Watch GT / Watch 3-4', 'icon': Icons.watch},
-      {'label': 'Görsel Sayısı', 'value': '${watch.imageCount} Adet', 'icon': Icons.photo_library_outlined},
-      {'label': 'Değiştirilme', 'value': dateStr, 'icon': Icons.calendar_today_outlined},
-      {'label': 'Dosya Adı', 'value': watch.fileName, 'icon': Icons.insert_drive_file_outlined},
+      {'label': appLocale.t('fileSize'), 'value': watch.formattedSize, 'icon': Icons.data_usage},
+      {'label': appLocale.t('version'), 'value': watch.version.isNotEmpty ? watch.version : appLocale.t('notSpecified'), 'icon': Icons.tag},
+      {'label': appLocale.t('targetDevice'), 'value': watch.device ?? appLocale.t('defaultDevice'), 'icon': Icons.watch},
+      {'label': appLocale.t('imageCount'), 'value': appLocale.t('imagesUnit', {'count': '${watch.imageCount}'}), 'icon': Icons.photo_library_outlined},
+      {'label': appLocale.t('dateModified'), 'value': dateStr, 'icon': Icons.calendar_today_outlined},
+      {'label': appLocale.t('fileName'), 'value': watch.fileName, 'icon': Icons.insert_drive_file_outlined},
     ];
 
     return GridView.builder(

@@ -18,6 +18,9 @@
 
 ## ✨ Features
 
+- 🌍 **Full Multilingual & RTL Support (7 Languages):**
+  - Native localized experience for **Türkçe (🇹🇷)**, **English (🇬🇧)**, **Français (🇫🇷)**, **Deutsch (🇩🇪)**, **Italiano (🇮🇹)**, **العربية (🇸🇦 - RTL)**, and **Dansk (🇩🇰)**.
+  - Interactive **Settings & Preferences** sheet to switch languages and theme on the fly with persistent storage.
 - 📁 **Instant `/Huawei` Storage Integration:**
   - Automatically provisions and monitors the root storage directory (`/storage/emulated/0/Huawei`) on your device.
   - Drop your `.hwt` watch face files straight into the `Huawei` folder in your file manager; the app scans and presents them immediately.

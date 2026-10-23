@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/localization_service.dart';
 import '../theme/luxury_theme.dart';
 
 class StatsHeader extends StatelessWidget {
@@ -9,7 +10,8 @@ class StatsHeader extends StatelessWidget {
   final VoidCallback onRefresh;
   final VoidCallback onImport;
   final VoidCallback onPickFolder;
-  final VoidCallback onToggleTheme;
+  final VoidCallback onOpenSettings;
+  final AppLocale appLocale;
   final bool isDark;
 
   const StatsHeader({
@@ -20,14 +22,15 @@ class StatsHeader extends StatelessWidget {
     required this.onRefresh,
     required this.onImport,
     required this.onPickFolder,
-    required this.onToggleTheme,
+    required this.onOpenSettings,
+    required this.appLocale,
     required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 14, 18, 16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
       decoration: BoxDecoration(
         color: isDark ? LuxuryColors.darkSurface : LuxuryColors.lightSurface,
         border: Border(
@@ -43,64 +46,81 @@ class StatsHeader extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(
-                icon: Icon(
-                  isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                  color: LuxuryColors.gold,
-                  size: 22,
+              // Sol: Ayarlar & Dil Rozeti Butonu
+              InkWell(
+                onTap: onOpenSettings,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isDark ? LuxuryColors.darkCard : LuxuryColors.lightCard,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: LuxuryColors.gold.withValues(alpha: 0.5),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(appLocale.current.flag, style: const TextStyle(fontSize: 14)),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.settings_outlined, color: LuxuryColors.gold, size: 18),
+                    ],
+                  ),
                 ),
-                tooltip: 'Tema Değiştir',
-                onPressed: onToggleTheme,
               ),
+              // Orta: Lüks Logo & Başlık
               Column(
                 children: [
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.watch_outlined, color: LuxuryColors.gold, size: 22),
+                      const Icon(Icons.watch_outlined, color: LuxuryColors.gold, size: 20),
                       const SizedBox(width: 8),
                       Text(
-                        'HWT LISTER',
+                        appLocale.t('appTitle'),
                         style: GoogleFonts.cinzel(
                           color: LuxuryColors.goldLight,
-                          fontSize: 20,
+                          fontSize: 19,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 3.0,
+                          letterSpacing: 2.5,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'HAUTE HORLOGERIE MOBILE',
+                    appLocale.t('appSubtitle'),
                     style: GoogleFonts.montserrat(
-                      color: LuxuryColors.gold.withValues(alpha: 0.7),
-                      fontSize: 10,
+                      color: LuxuryColors.gold.withValues(alpha: 0.75),
+                      fontSize: 9,
                       fontWeight: FontWeight.w600,
-                      letterSpacing: 2.5,
+                      letterSpacing: 2.2,
                     ),
                   ),
                 ],
               ),
+              // Sağ: İçe Aktar ve Yenile Butonları
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.file_upload_outlined, color: LuxuryColors.gold, size: 22),
-                    tooltip: 'HWT İçe Aktar',
+                    tooltip: appLocale.t('pickAndImport'),
                     onPressed: onImport,
                   ),
                   IconButton(
                     icon: const Icon(Icons.refresh, color: LuxuryColors.gold, size: 22),
-                    tooltip: 'Yenile',
+                    tooltip: appLocale.t('rescan'),
                     onPressed: onRefresh,
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          // Dizin ve İstatistik Hapları
+          const SizedBox(height: 12),
+          // Dizin ve İstatistik Rozetleri
           Wrap(
             alignment: WrapAlignment.center,
             spacing: 8,
@@ -115,7 +135,7 @@ class StatsHeader extends StatelessWidget {
               ),
               _buildPill(
                 icon: Icons.dashboard_customize_outlined,
-                label: '$totalCount Kadran',
+                label: '$totalCount ${appLocale.t('itemsUnit')}',
               ),
               _buildPill(
                 icon: Icons.data_usage_outlined,

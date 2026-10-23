@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../services/localization_service.dart';
 import '../theme/luxury_theme.dart';
 
 enum SortOption {
@@ -16,6 +17,7 @@ class SearchFilterBar extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final SortOption currentSort;
   final ValueChanged<SortOption> onSortChanged;
+  final AppLocale appLocale;
   final bool isDark;
 
   const SearchFilterBar({
@@ -24,30 +26,31 @@ class SearchFilterBar extends StatelessWidget {
     required this.onSearchChanged,
     required this.currentSort,
     required this.onSortChanged,
+    required this.appLocale,
     required this.isDark,
   });
 
   String _getSortLabel(SortOption option) {
     switch (option) {
       case SortOption.nameAsc:
-        return 'İsim (A-Z)';
+        return appLocale.t('sortNameAsc');
       case SortOption.nameDesc:
-        return 'İsim (Z-A)';
+        return appLocale.t('sortNameDesc');
       case SortOption.sizeDesc:
-        return 'Boyut (En Büyük)';
+        return appLocale.t('sortSizeDesc');
       case SortOption.sizeAsc:
-        return 'Boyut (En Küçük)';
+        return appLocale.t('sortSizeAsc');
       case SortOption.dateDesc:
-        return 'Tarih (En Yeni)';
+        return appLocale.t('sortDateDesc');
       case SortOption.dateAsc:
-        return 'Tarih (En Eski)';
+        return appLocale.t('sortDateAsc');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
           // Arama Kutusu
@@ -70,7 +73,7 @@ class SearchFilterBar extends StatelessWidget {
                   fontSize: 13,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Kadran, yazar veya model ara...',
+                  hintText: appLocale.t('searchHint'),
                   hintStyle: GoogleFonts.montserrat(
                     color: isDark ? Colors.white38 : Colors.black38,
                     fontSize: 12,
@@ -105,7 +108,7 @@ class SearchFilterBar extends StatelessWidget {
             ),
             child: PopupMenuButton<SortOption>(
               icon: const Icon(Icons.sort_rounded, color: LuxuryColors.gold, size: 20),
-              tooltip: 'Sırala',
+              tooltip: appLocale.t('sortTooltip'),
               color: isDark ? LuxuryColors.darkSurface : LuxuryColors.lightSurface,
               onSelected: onSortChanged,
               itemBuilder: (context) => SortOption.values.map((option) {
