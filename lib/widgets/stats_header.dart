@@ -10,6 +10,7 @@ class StatsHeader extends StatelessWidget {
   final VoidCallback onRefresh;
   final VoidCallback onImport;
   final VoidCallback onPickFolder;
+  final VoidCallback onOpenLanguage;
   final VoidCallback onOpenSettings;
   final AppLocale appLocale;
   final bool isDark;
@@ -22,6 +23,7 @@ class StatsHeader extends StatelessWidget {
     required this.onRefresh,
     required this.onImport,
     required this.onPickFolder,
+    required this.onOpenLanguage,
     required this.onOpenSettings,
     required this.appLocale,
     required this.isDark,
@@ -30,7 +32,7 @@ class StatsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
         color: isDark ? LuxuryColors.darkSurface : LuxuryColors.lightSurface,
         border: Border(
@@ -46,29 +48,62 @@ class StatsHeader extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Sol: Ayarlar & Dil Rozeti Butonu
-              InkWell(
-                onTap: onOpenSettings,
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isDark ? LuxuryColors.darkCard : LuxuryColors.lightCard,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: LuxuryColors.gold.withValues(alpha: 0.5),
-                      width: 0.8,
+              // Sol: Dil Seçimi ve Ayarlar Butonları
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Belirgin Dil Butonu
+                  InkWell(
+                    onTap: onOpenLanguage,
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: isDark ? LuxuryColors.darkCard : LuxuryColors.lightCard,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: LuxuryColors.gold.withValues(alpha: 0.7),
+                          width: 0.9,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(appLocale.current.flag, style: const TextStyle(fontSize: 14)),
+                          const SizedBox(width: 4),
+                          Text(
+                            appLocale.current.code.toUpperCase(),
+                            style: GoogleFonts.montserrat(
+                              color: LuxuryColors.gold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 1),
+                          const Icon(Icons.arrow_drop_down, color: LuxuryColors.gold, size: 15),
+                        ],
+                      ),
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(appLocale.current.flag, style: const TextStyle(fontSize: 14)),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.settings_outlined, color: LuxuryColors.gold, size: 18),
-                    ],
+                  const SizedBox(width: 6),
+                  // Ayarlar Butonu
+                  InkWell(
+                    onTap: onOpenSettings,
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: isDark ? LuxuryColors.darkCard : LuxuryColors.lightCard,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark ? LuxuryColors.darkBorder : LuxuryColors.lightBorder,
+                          width: 0.8,
+                        ),
+                      ),
+                      child: const Icon(Icons.settings_outlined, color: LuxuryColors.gold, size: 17),
+                    ),
                   ),
-                ),
+                ],
               ),
               // Orta: Lüks Logo & Başlık
               Column(

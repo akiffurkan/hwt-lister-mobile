@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
 import 'services/localization_service.dart';
@@ -69,7 +70,12 @@ class _HwtListerAppState extends State<HwtListerApp> {
           darkTheme: LuxuryTheme.darkTheme,
           themeMode: _isDark ? ThemeMode.dark : ThemeMode.light,
           locale: _appLocale.locale,
-          supportedLocales: AppLanguage.values.map((l) => l.code).map((c) => Locale(c)).toList(),
+          supportedLocales: AppLanguage.values.map((l) => Locale(l.code)).toList(),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: HomeScreen(
             appLocale: _appLocale,
             onToggleTheme: _toggleTheme,

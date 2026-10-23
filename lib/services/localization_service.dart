@@ -2,19 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum AppLanguage {
-  tr('Türkçe', 'tr', '🇹🇷'),
-  en('English', 'en', '🇬🇧'),
-  fr('Français', 'fr', '🇫🇷'),
-  de('Deutsch', 'de', '🇩🇪'),
-  it('Italiano', 'it', '🇮🇹'),
-  ar('العربية', 'ar', '🇸🇦'),
-  da('Dansk', 'da', '🇩🇰');
+  tr('Türkçe', 'Turkish', 'tr', '🇹🇷'),
+  en('English', 'English', 'en', '🇬🇧'),
+  fr('Français', 'French', 'fr', '🇫🇷'),
+  de('Deutsch', 'German', 'de', '🇩🇪'),
+  it('Italiano', 'Italian', 'it', '🇮🇹'),
+  ar('العربية', 'Arabic', 'ar', '🇸🇦'),
+  da('Dansk', 'Danish', 'da', '🇩🇰');
 
   final String nativeName;
+  final String englishName;
   final String code;
   final String flag;
 
-  const AppLanguage(this.nativeName, this.code, this.flag);
+  const AppLanguage(this.nativeName, this.englishName, this.code, this.flag);
 
   bool get isRTL => this == AppLanguage.ar;
 }

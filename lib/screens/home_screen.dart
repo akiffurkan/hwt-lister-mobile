@@ -5,6 +5,7 @@ import '../services/hwt_service.dart';
 import '../services/localization_service.dart';
 import '../services/storage_service.dart';
 import '../theme/luxury_theme.dart';
+import '../widgets/language_sheet.dart';
 import '../widgets/search_filter_bar.dart';
 import '../widgets/settings_sheet.dart';
 import '../widgets/stats_header.dart';
@@ -163,6 +164,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openLanguagePicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => LanguageSheet(
+        appLocale: widget.appLocale,
+        isDark: widget.isDark,
+      ),
+    );
+  }
+
   void _openSettings() {
     showModalBottomSheet(
       context: context,
@@ -196,6 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onRefresh: () => _initAndLoad(),
                 onImport: _handleImport,
                 onPickFolder: _handlePickFolder,
+                onOpenLanguage: _openLanguagePicker,
                 onOpenSettings: _openSettings,
                 appLocale: appLocale,
                 isDark: isDark,
