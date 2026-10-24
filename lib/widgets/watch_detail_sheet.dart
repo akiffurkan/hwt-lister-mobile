@@ -10,12 +10,14 @@ class WatchDetailSheet extends StatefulWidget {
   final WatchFace watch;
   final AppLocale appLocale;
   final bool isDark;
+  final Future<void> Function(WatchFace watch)? onDelete;
 
   const WatchDetailSheet({
     super.key,
     required this.watch,
     required this.appLocale,
     required this.isDark,
+    this.onDelete,
   });
 
   @override
@@ -33,6 +35,78 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
         text: widget.appLocale.t('shareWatchFaceText', {'name': widget.watch.displayName}),
       ),
     );
+  }
+
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: widget.isDark ? LuxuryColors.darkCard : LuxuryColors.lightCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: widget.isDark ? LuxuryColors.darkBorder : LuxuryColors.lightBorder,
+          ),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.delete_forever_outlined, color: Colors.redAccent, size: 24),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                widget.appLocale.t('deleteDialogTitle'),
+                style: GoogleFonts.cinzel(
+                  color: widget.isDark ? LuxuryColors.goldLight : LuxuryColors.goldDark,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          widget.appLocale.t('deleteDialogContent', {'name': widget.watch.displayName}),
+          style: GoogleFonts.montserrat(
+            color: widget.isDark ? Colors.white70 : Colors.black87,
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(
+              widget.appLocale.t('cancel'),
+              style: GoogleFonts.montserrat(
+                color: widget.isDark ? Colors.white60 : Colors.black54,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(
+              widget.appLocale.t('deleteConfirm'),
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      Navigator.of(context).pop();
+      if (widget.onDelete != null) {
+        await widget.onDelete!(widget.watch);
+      }
+    }
   }
 
   @override
@@ -151,7 +225,7 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
               ],
               const SizedBox(height: 16),
 
-              // Paylaş Butonu
+              // Paylaş & Sil Butonları
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -160,12 +234,27 @@ class _WatchDetailSheetState extends State<WatchDetailSheet> {
                       side: const BorderSide(color: LuxuryColors.gold),
                       foregroundColor: LuxuryColors.gold,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     ),
                     onPressed: _shareFile,
                     icon: const Icon(Icons.share_outlined, size: 18),
                     label: Text(
                       appLocale.t('shareHwt'),
+                      style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.8)),
+                      foregroundColor: Colors.redAccent,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    ),
+                    onPressed: _confirmDelete,
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: Text(
+                      appLocale.t('deleteHwt'),
                       style: GoogleFonts.montserrat(fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                   ),

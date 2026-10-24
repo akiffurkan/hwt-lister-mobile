@@ -149,4 +149,16 @@ class StorageService {
   static Future<String?> pickCustomDirectory() async {
     return await FilePicker.getDirectoryPath();
   }
+
+  /// Kadran (.hwt) dosyasını kalıcı olarak siler
+  static Future<bool> deleteWatchFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (await file.exists()) {
+        await file.delete();
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
 }

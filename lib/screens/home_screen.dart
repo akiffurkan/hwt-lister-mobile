@@ -160,8 +160,56 @@ class _HomeScreenState extends State<HomeScreen> {
         watch: watch,
         appLocale: widget.appLocale,
         isDark: widget.isDark,
+        onDelete: _handleDeleteWatch,
       ),
     );
+  }
+
+  Future<void> _handleDeleteWatch(WatchFace watch) async {
+    final success = await StorageService.deleteWatchFile(watch.filePath);
+    if (!mounted) return;
+
+    if (success) {
+      setState(() {
+        _allWatches.removeWhere((w) => w.filePath == watch.filePath);
+        _totalBytes = _allWatches.fold<int>(0, (sum, w) => sum + w.fileSizeBytes);
+        _applyFilterAndSort();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: LuxuryColors.darkCard,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: const BorderSide(color: LuxuryColors.gold, width: 0.8),
+          ),
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_outline, color: LuxuryColors.gold, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  widget.appLocale.t('deletedSuccess', {'name': watch.displayName}),
+                  style: GoogleFonts.montserrat(color: LuxuryColors.goldLight, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red.shade900,
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            widget.appLocale.t('deleteError'),
+            style: GoogleFonts.montserrat(color: Colors.white, fontSize: 13),
+          ),
+        ),
+      );
+    }
   }
 
   void _openLanguagePicker() {
